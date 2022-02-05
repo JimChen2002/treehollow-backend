@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"strconv"
 	"strings"
+	"log"
 	"treehollow-v3-backend/pkg/base"
 	"treehollow-v3-backend/pkg/consts"
 	"treehollow-v3-backend/pkg/logger"
@@ -70,6 +71,7 @@ func checkAccountNotRegistered(c *gin.Context) {
 func checkAccountIsRegistered(c *gin.Context) {
 	email := strings.ToLower(c.PostForm("email"))
 	emailHash := utils.HashEmail(email)
+	log.Printf("Email Hash: %s\n", emailHash)
 
 	var count int64
 	err := base.GetDb(false).Where("email_hash = ?", emailHash).
