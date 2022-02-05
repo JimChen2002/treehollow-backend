@@ -2,12 +2,12 @@ package security
 
 import (
 	"errors"
-	"fmt"
-	"github.com/ProtonMail/gopenpgp/v2/helper"
-	"github.com/SSSaaS/sssa-golang"
+//	"fmt"
+//	"github.com/ProtonMail/gopenpgp/v2/helper"
+//	"github.com/SSSaaS/sssa-golang"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/spf13/viper"
+//	"github.com/spf13/viper"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"net"
@@ -22,7 +22,7 @@ import (
 )
 
 func saveKeyShares(user *base.User, pwHashed string, tx *gorm.DB) *logger.InternalError {
-	pgpPublicKeys := viper.GetStringSlice("key_keepers_pgp_public_keys")
+/*	pgpPublicKeys := viper.GetStringSlice("key_keepers_pgp_public_keys")
 	minDecryptShares := viper.GetInt("min_decryption_key_count")
 	if len(pgpPublicKeys) < 1 || minDecryptShares < 1 {
 		return logger.NewSimpleError("ServerConfigError", "服务器加密配置错误，请联系管理员", logger.FATAL)
@@ -57,7 +57,7 @@ If you agree to decrypt this user's personal information, please submit the foll
 		if err4 != nil {
 			return logger.NewError(err4, "SaveDecryptionKeySharesFailed", consts.DatabaseWriteFailedString)
 		}
-	}
+	}*/
 	return nil
 }
 

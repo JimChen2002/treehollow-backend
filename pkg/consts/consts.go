@@ -6,7 +6,7 @@ import "time"
 const PageSize = 30
 const MsgPageSize = 10
 const SystemLoadThreshold float64 = 5.0
-const TokenExpireDays = 31
+const TokenExpireDays = 1
 const WanderPageSize = 15
 const MaxPage = 150
 const SearchPageSize = 30
