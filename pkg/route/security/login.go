@@ -23,6 +23,7 @@ func loginGetUserMiddleware(c *gin.Context) {
 	email := strings.ToLower(c.PostForm("email"))
 
 	emailEncrypted, err := utils.AESEncrypt(email, pwHashed)
+	log.Printf("Encrypted Username is %s\n", emailEncrypted)
 	if err != nil {
 		base.HttpReturnWithCodeMinusOneAndAbort(c, logger.NewError(err, "AESEncryptFailedInMiddleware", consts.DatabaseEncryptFailedString))
 		return
