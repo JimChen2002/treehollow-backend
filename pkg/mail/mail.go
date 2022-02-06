@@ -13,9 +13,9 @@ func SendValidationEmail(code string, recipient string) error {
 	m.SetHeader("To", recipient)
 	var title string
 	if(len(code) > 6) {
-		title := "[" + websiteName + "] Invitation Code"
+		title = "[" + websiteName + "] Invitation Code"
 	} else {
-		title := "[" + websiteName + "] Validation Code"
+		title = "[" + websiteName + "] Validation Code"
 	}
 	m.SetHeader("Subject", title)
 
