@@ -192,8 +192,6 @@ func checkEmail(c *gin.Context) {
 func checkEmailInvitation(c *gin.Context) {
 	email := strings.ToLower(c.PostForm("email"))
 
-	emailHash := c.MustGet("email_hash").(string)
-
 	code := viper.GetString("invitation_code")
 
 	err := mail.SendValidationEmail(code, email)
