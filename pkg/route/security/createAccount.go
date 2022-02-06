@@ -209,9 +209,11 @@ func createAccountInvitation(c *gin.Context) {
 		base.HttpReturnWithCodeMinusOneAndAbort(c, logger.NewError(err, "AESEncryptFailedInCreateAccount", consts.DatabaseEncryptFailedString))
 		return
 	}
+
+	var user base.User
 	
 	code := c.PostForm("valid_code")
-	correctCode := viper.GetStringSlice("invitation_code")
+	correctCode := viper.GetString("invitation_code")
 
 	if correctCode != code {
 		base.HttpReturnWithErrAndAbort(c, -10, logger.NewSimpleError("ValidCodeInvalid", "The invitation code is wrong!", logger.WARN))
@@ -224,26 +226,14 @@ func createAccountInvitation(c *gin.Context) {
 			return err
 		}
 
-		if err5 != nil {
-			user = base.User{
-				EmailEncrypted: emailEncrypted,
-				ForgetPwNonce:  utils.GenNonce(),
-				Role:           base.NormalUserRole,
-			}
-			if err = tx.Create(&user).Error; err != nil {
-				base.HttpReturnWithCodeMinusOne(c, logger.NewError(err, "CreateUserFailed", consts.DatabaseWriteFailedString))
-				return err
-			}
-		} else {
-			user.OldEmailHash = ""
-			user.OldToken = ""
-			user.EmailEncrypted = emailEncrypted
-			user.UpdatedAt = time.Now()
-			user.ForgetPwNonce = ""
-			if err = tx.Model(&base.User{}).Where("id = ?", user.ID).Updates(user).Error; err != nil {
-				base.HttpReturnWithCodeMinusOne(c, logger.NewError(err, "UpdateOldUserFailed", consts.DatabaseWriteFailedString))
-				return err
-			}
+		user = base.User{
+			EmailEncrypted: emailEncrypted,
+			ForgetPwNonce:  "",
+			Role:           base.NormalUserRole,
+		}
+		if err = tx.Create(&user).Error; err != nil {
+			base.HttpReturnWithCodeMinusOne(c, logger.NewError(err, "CreateUserFailed", consts.DatabaseWriteFailedString))
+			return err
 		}
 
 		return createDevice(c, &user, pwHashed, tx)
