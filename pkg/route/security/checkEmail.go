@@ -44,7 +44,7 @@ func checkEmailRegexMiddleware(c *gin.Context) {
 	if !emailCheck.MatchString(email) {
 		emailWhitelist := viper.GetStringSlice("email_whitelist")
 		if _, ok := utils.ContainsString(emailWhitelist, email); !ok {
-			base.HttpReturnWithCodeMinusOneAndAbort(c, logger.NewSimpleError("EmailRegexCheckNotPass", "Sorry, we are only open to CMU community for now"+viper.GetString("name"), logger.INFO))
+			base.HttpReturnWithCodeMinusOneAndAbort(c, logger.NewSimpleError("EmailRegexCheckNotPass", "Sorry, we are only open to CMU community for now", logger.INFO))
 			return
 		}
 	}
@@ -199,14 +199,6 @@ func checkEmailInvitation(c *gin.Context) {
 	err := mail.SendValidationEmail(code, email)
 	if err != nil {
 		base.HttpReturnWithCodeMinusOne(c, logger.NewError(err, "SendEmailFailed"+email, "Failed to send code."))
-		return
-	}
-
-	err = base.GetDb(false).Clauses(clause.OnConflict{
-		UpdateAll: true,
-	}).Create(&base.VerificationCode{Code: code, EmailHash: emailHash, FailedTimes: 0, UpdatedAt: time.Now()}).Error
-	if err != nil {
-		base.HttpReturnWithCodeMinusOne(c, logger.NewError(err, "SaveVerificationCodeFailed", consts.DatabaseWriteFailedString))
 		return
 	}
 
