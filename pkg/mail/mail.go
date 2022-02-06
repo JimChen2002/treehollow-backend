@@ -11,6 +11,7 @@ func SendValidationEmail(code string, recipient string) error {
 	m := gomail.NewMessage()
 	m.SetHeader("From", viper.GetString("from_domain"))
 	m.SetHeader("To", recipient)
+	var title string
 	if(len(code) > 6) {
 		title := "[" + websiteName + "] Invitation Code"
 	} else {
