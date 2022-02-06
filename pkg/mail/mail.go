@@ -9,7 +9,7 @@ import (
 func SendValidationEmail(code string, recipient string) error {
 	websiteName := viper.GetString("name")
 	m := gomail.NewMessage()
-	m.SetHeader("From", viper.GetString("smtp_username"))
+	m.SetHeader("From", viper.GetString("from_domain"))
 	m.SetHeader("To", recipient)
 	title := "【" + websiteName + "】验证码"
 	m.SetHeader("Subject", title)
@@ -22,7 +22,7 @@ func SendValidationEmail(code string, recipient string) error {
     <title>` + title + `</title>
 </head>
 <body>
-<p>Welcome to` + websiteName + `!</p>
+<p>Welcome to ` + websiteName + `!</p>
 <p>This is your verification code. It is valid for 12 hours.</p>
 <p><strong>` + code + `</strong></p>
 </body>
@@ -45,7 +45,7 @@ func SendValidationEmail(code string, recipient string) error {
 func SendUnregisterValidationEmail(code string, recipient string) error {
 	websiteName := viper.GetString("name")
 	m := gomail.NewMessage()
-	m.SetHeader("From", viper.GetString("smtp_username"))
+	m.SetHeader("From", viper.GetString("from_domain"))
 	m.SetHeader("To", recipient)
 	title := "[" + websiteName + "] Verification Code"
 	m.SetHeader("Subject", title)
@@ -94,7 +94,7 @@ func SendPasswordNonceEmail(nonce string, recipient string) error {
     <title>` + title + `</title>
 </head>
 <body>
-<p>Welcome to` + websiteName + `!</p>
+<p>Welcome to ` + websiteName + `!</p>
 <p>The string below is necessary to delete your account. Please keep it safe.</p>
 <p><strong>` + nonce + `</strong></p>
 </body>
