@@ -13,8 +13,7 @@ func SendValidationEmail(code string, recipient string) error {
 	m.SetHeader("To", recipient)
 	if(len(code) > 6) {
 		title := "[" + websiteName + "] Invitation Code"
-	}
-	else {
+	} else {
 		title := "[" + websiteName + "] Validation Code"
 	}
 	m.SetHeader("Subject", title)
