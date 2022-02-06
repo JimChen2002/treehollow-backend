@@ -11,7 +11,10 @@ func SendValidationEmail(code string, recipient string) error {
 	m := gomail.NewMessage()
 	m.SetHeader("From", viper.GetString("from_domain"))
 	m.SetHeader("To", recipient)
-	title := "【" + websiteName + "】验证码"
+	if(len(code) > 6)
+		title := "[" + websiteName + "] Invitation Code"
+	else
+		title := "[" + websiteName + "] Validation Code"
 	m.SetHeader("Subject", title)
 
 	msg := `<!DOCTYPE html>
@@ -33,7 +36,7 @@ func SendValidationEmail(code string, recipient string) error {
 		return err
 	}
 	m.SetBody("text/html", msg)
-	m.AddAlternative("text/plain", "Hi,\n\nWelcome to"+websiteName+"!\n\n"+code+"\nThis is your verification code. It is valid for 12 hours.\n")
+	m.AddAlternative("text/plain", "Hi,\n\nWelcome to "+websiteName+"!\n\n"+code+"\nThis is your verification code. It is valid for 12 hours.\n")
 	d := gomail.NewDialer(viper.GetString("smtp_host"), port, viper.GetString("smtp_username"), viper.GetString("smtp_password"))
 
 	if err = d.DialAndSend(m); err != nil {
@@ -58,7 +61,7 @@ func SendUnregisterValidationEmail(code string, recipient string) error {
     <title>` + title + `</title>
 </head>
 <body>
-<p>Hi, You are deleting your account on` + websiteName + `。</p>
+<p>Hi, You are deleting your account on ` + websiteName + `。</p>
 <p>This is your verification code. It is valid for 12 hours.</p>
 <p><strong>` + code + `</strong></p>
 </body>
@@ -69,7 +72,7 @@ func SendUnregisterValidationEmail(code string, recipient string) error {
 		return err
 	}
 	m.SetBody("text/html", msg)
-	m.AddAlternative("text/plain", "Hi,\n\nYou are deleting your account on"+websiteName+"。\n\n"+code+"\nThis is your verification code. It is valid for 12 hours.\n")
+	m.AddAlternative("text/plain", "Hi,\n\nYou are deleting your account on "+websiteName+"。\n\n"+code+"\nThis is your verification code. It is valid for 12 hours.\n")
 	d := gomail.NewDialer(viper.GetString("smtp_host"), port, viper.GetString("smtp_username"), viper.GetString("smtp_password"))
 
 	if err = d.DialAndSend(m); err != nil {
@@ -83,7 +86,7 @@ func SendPasswordNonceEmail(nonce string, recipient string) error {
 	m := gomail.NewMessage()
 	m.SetHeader("From", viper.GetString("smtp_username"))
 	m.SetHeader("To", recipient)
-	title := "Welcome to" + websiteName
+	title := "Welcome to " + websiteName
 	m.SetHeader("Subject", title)
 
 	msg := `<!DOCTYPE html>
@@ -105,7 +108,7 @@ func SendPasswordNonceEmail(nonce string, recipient string) error {
 		return err
 	}
 	m.SetBody("text/html", msg)
-	m.AddAlternative("text/plain", "Hi,\n\nWelcome to"+websiteName+"!\nThe string below is necessary to delete your account. Please keep it safe.\n"+nonce+"\n")
+	m.AddAlternative("text/plain", "Hi,\n\nWelcome to "+websiteName+"!\nThe string below is necessary to delete your account. Please keep it safe.\n"+nonce+"\n")
 	d := gomail.NewDialer(viper.GetString("smtp_host"), port, viper.GetString("smtp_username"), viper.GetString("smtp_password"))
 
 	if err = d.DialAndSend(m); err != nil {
