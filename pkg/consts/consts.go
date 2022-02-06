@@ -33,10 +33,10 @@ const DatabaseWriteFailedString = "数据库写入失败，请联系管理员"
 const DatabaseDamagedString = "数据库损坏，请联系管理员"
 const DatabaseEncryptFailedString = "数据库加密失败，请联系管理员"
 
-const DzName = "洞主"
+const DzName = "Host"
 const ExtraNamePrefix = "You Win "
 
-var TimeLoc, _ = time.LoadLocation("Asia/Shanghai")
+var TimeLoc, _ = time.LoadLocation("America/New_York")
 
 var Names0 = []string{
 	"Angry",

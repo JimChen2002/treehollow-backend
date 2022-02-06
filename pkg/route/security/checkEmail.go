@@ -215,7 +215,7 @@ func unregisterEmail(c *gin.Context) {
 
 	err := mail.SendUnregisterValidationEmail(code, email)
 	if err != nil {
-		base.HttpReturnWithCodeMinusOne(c, logger.NewError(err, "SendEmailFailed"+email, "验证码邮件发送失败。"))
+		base.HttpReturnWithCodeMinusOne(c, logger.NewError(err, "SendEmailFailed"+email, "Failed to send verification code."))
 		return
 	}
 
@@ -229,6 +229,6 @@ func unregisterEmail(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"code": 1,
-		"msg":  "验证码发送成功，5分钟内无法重复发送验证码。请记得查看垃圾邮件。",
+		"msg":  "Verification code sent successfully.",
 	})
 }

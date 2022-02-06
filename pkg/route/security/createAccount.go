@@ -156,11 +156,11 @@ func createAccount(c *gin.Context) {
 			return
 		}
 		if failedTimes >= 10 && now-timeStamp <= 43200 {
-			base.HttpReturnWithCodeMinusOneAndAbort(c, logger.NewSimpleError("ValidCodeTooMuchFailed", "验证码错误尝试次数过多，请重新发送验证码", logger.INFO))
+			base.HttpReturnWithCodeMinusOneAndAbort(c, logger.NewSimpleError("ValidCodeTooMuchFailed", "Verification code fails too many times.", logger.INFO))
 			return
 		}
 		if correctCode != code || now-timeStamp > 43200 {
-			base.HttpReturnWithErrAndAbort(c, -10, logger.NewSimpleError("ValidCodeInvalid", "验证码无效或过期", logger.WARN))
+			base.HttpReturnWithErrAndAbort(c, -10, logger.NewSimpleError("ValidCodeInvalid", "Verification code invalid or timeout.", logger.WARN))
 			_ = base.GetDb(false).Model(&base.VerificationCode{}).Where("email_hash = ?", emailHash).
 				Update("failed_times", gorm.Expr("failed_times + 1")).Error
 			return
@@ -267,7 +267,7 @@ func changePassword(c *gin.Context) {
 			Model(&base.User{}).First(&user)
 		if result.Error != nil {
 			if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-				base.HttpReturnWithCodeMinusOne(c, logger.NewSimpleError("ChangePasswordNoAuth", "用户名或密码错误", logger.WARN))
+				base.HttpReturnWithCodeMinusOne(c, logger.NewSimpleError("ChangePasswordNoAuth", "Username or password wrong.", logger.WARN))
 				return nil
 			}
 			base.HttpReturnWithCodeMinusOne(c, logger.NewError(result.Error, "GetUserByEmailEncryptedFailed", consts.DatabaseReadFailedString))
