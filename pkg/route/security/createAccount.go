@@ -7,7 +7,7 @@ import (
 //	"github.com/SSSaaS/sssa-golang"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-//	"github.com/spf13/viper"
+	"github.com/spf13/viper"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"net"
@@ -119,7 +119,9 @@ func createDevice(c *gin.Context, user *base.User, pwHashed string, tx *gorm.DB)
 		"uuid":  deviceUUID,
 	})
 	go func() {
-		_ = mail.SendPasswordNonceEmail(user.ForgetPwNonce, email)
+		if len(user.ForgetPwNonce) > 0 {
+			_ = mail.SendPasswordNonceEmail(user.ForgetPwNonce, email)
+		}
 	}()
 	return nil
 }
@@ -187,6 +189,57 @@ func createAccount(c *gin.Context) {
 			user.EmailEncrypted = emailEncrypted
 			user.UpdatedAt = time.Now()
 			user.ForgetPwNonce = utils.GenNonce()
+			if err = tx.Model(&base.User{}).Where("id = ?", user.ID).Updates(user).Error; err != nil {
+				base.HttpReturnWithCodeMinusOne(c, logger.NewError(err, "UpdateOldUserFailed", consts.DatabaseWriteFailedString))
+				return err
+			}
+		}
+
+		return createDevice(c, &user, pwHashed, tx)
+	})
+}
+
+func createAccountInvitation(c *gin.Context) {
+	emailHash := c.MustGet("email_hash").(string)
+	email := strings.ToLower(c.PostForm("email"))
+	pwHashed := c.PostForm("password_hashed")
+	emailEncrypted, err := utils.AESEncrypt(email, pwHashed)
+
+	if err != nil {
+		base.HttpReturnWithCodeMinusOneAndAbort(c, logger.NewError(err, "AESEncryptFailedInCreateAccount", consts.DatabaseEncryptFailedString))
+		return
+	}
+	
+	code := c.PostForm("valid_code")
+	correctCode := viper.GetStringSlice("invitation_code")
+
+	if correctCode != code {
+		base.HttpReturnWithErrAndAbort(c, -10, logger.NewSimpleError("ValidCodeInvalid", "The invitation code is wrong!", logger.WARN))
+		return
+	}
+
+	_ = base.GetDb(false).Transaction(func(tx *gorm.DB) error {
+		if err = tx.Create(&base.Email{EmailHash: emailHash}).Error; err != nil {
+			base.HttpReturnWithCodeMinusOne(c, logger.NewError(err, "CreateEmailHashFailed", consts.DatabaseWriteFailedString))
+			return err
+		}
+
+		if err5 != nil {
+			user = base.User{
+				EmailEncrypted: emailEncrypted,
+				ForgetPwNonce:  utils.GenNonce(),
+				Role:           base.NormalUserRole,
+			}
+			if err = tx.Create(&user).Error; err != nil {
+				base.HttpReturnWithCodeMinusOne(c, logger.NewError(err, "CreateUserFailed", consts.DatabaseWriteFailedString))
+				return err
+			}
+		} else {
+			user.OldEmailHash = ""
+			user.OldToken = ""
+			user.EmailEncrypted = emailEncrypted
+			user.UpdatedAt = time.Now()
+			user.ForgetPwNonce = ""
 			if err = tx.Model(&base.User{}).Where("id = ?", user.ID).Updates(user).Error; err != nil {
 				base.HttpReturnWithCodeMinusOne(c, logger.NewError(err, "UpdateOldUserFailed", consts.DatabaseWriteFailedString))
 				return err

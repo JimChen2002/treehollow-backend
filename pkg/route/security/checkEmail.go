@@ -26,7 +26,7 @@ func checkEmailParamsCheckMiddleware(c *gin.Context) {
 	email := strings.ToLower(c.PostForm("email"))
 
 	if len(email) > 100 || len(oldToken) > 32 || len(recaptchaToken) > 2000 || len(recaptchaVersion) > 2 {
-		base.HttpReturnWithCodeMinusOneAndAbort(c, logger.NewSimpleError("CheckEmailParamsOutOfBound", "参数错误", logger.WARN))
+		base.HttpReturnWithCodeMinusOneAndAbort(c, logger.NewSimpleError("CheckEmailParamsOutOfBound", "Wrong Parameter", logger.WARN))
 		return
 	}
 	emailHash := utils.HashEmail(email)
@@ -38,13 +38,13 @@ func checkEmailRegexMiddleware(c *gin.Context) {
 	email := strings.ToLower(c.PostForm("email"))
 	emailCheck, err := regexp.Compile(viper.GetString("email_check_regex"))
 	if err != nil {
-		base.HttpReturnWithCodeMinusOneAndAbort(c, logger.NewError(err, "RegexError", "服务器配置错误，请联系管理员。"))
+		base.HttpReturnWithCodeMinusOneAndAbort(c, logger.NewError(err, "RegexError", "Server Error"))
 		return
 	}
 	if !emailCheck.MatchString(email) {
 		emailWhitelist := viper.GetStringSlice("email_whitelist")
 		if _, ok := utils.ContainsString(emailWhitelist, email); !ok {
-			base.HttpReturnWithCodeMinusOneAndAbort(c, logger.NewSimpleError("EmailRegexCheckNotPass", "很抱歉，您的邮箱无法注册"+viper.GetString("name"), logger.INFO))
+			base.HttpReturnWithCodeMinusOneAndAbort(c, logger.NewSimpleError("EmailRegexCheckNotPass", "Sorry, we are only open to CMU community for now"+viper.GetString("name"), logger.INFO))
 			return
 		}
 	}
@@ -98,7 +98,7 @@ func checkEmailRateLimitVerificationCode(c *gin.Context) {
 	now := utils.GetTimeStamp()
 	_, timeStamp, _, _ := base.GetVerificationCode(emailHash)
 	if now-timeStamp < 60 {
-		base.HttpReturnWithCodeMinusOneAndAbort(c, logger.NewSimpleError("TooMuchEmailInOneMinute", "请不要短时间内重复发送邮件。", logger.INFO))
+		base.HttpReturnWithCodeMinusOneAndAbort(c, logger.NewSimpleError("TooMuchEmailInOneMinute", "Please wait 1 minute.", logger.INFO))
 		return
 	}
 	c.Next()
@@ -123,7 +123,7 @@ func checkEmailReCaptchaValidationMiddleware(c *gin.Context) {
 		return
 	}
 	if context.Reached {
-		base.HttpReturnWithCodeMinusOneAndAbort(c, logger.NewSimpleError("EmailLimiterReached"+c.ClientIP(), "您今天已经发送了过多验证码，请24小时之后重试。", logger.WARN))
+		base.HttpReturnWithCodeMinusOneAndAbort(c, logger.NewSimpleError("EmailLimiterReached"+c.ClientIP(), "You sent too much code today. Please try again tomorrow.", logger.WARN))
 		return
 	}
 
@@ -134,7 +134,7 @@ func checkEmailReCaptchaValidationMiddleware(c *gin.Context) {
 		if err5 == nil {
 			country := record.Country.Names["zh-CN"]
 			if _, ok := utils.ContainsString(viper.GetStringSlice("allowed_register_countries"), country); !ok {
-				base.HttpReturnWithCodeMinusOneAndAbort(c, logger.NewSimpleError("RegisterNotAllowed"+c.ClientIP()+country+email, "您所在的国家暂未开放注册。", logger.WARN))
+				base.HttpReturnWithCodeMinusOneAndAbort(c, logger.NewSimpleError("RegisterNotAllowed"+c.ClientIP()+country+email, "Your country is not supported.", logger.WARN))
 				return
 			}
 		}
@@ -171,7 +171,7 @@ func checkEmail(c *gin.Context) {
 
 	err := mail.SendValidationEmail(code, email)
 	if err != nil {
-		base.HttpReturnWithCodeMinusOne(c, logger.NewError(err, "SendEmailFailed"+email, "验证码邮件发送失败。"))
+		base.HttpReturnWithCodeMinusOne(c, logger.NewError(err, "SendEmailFailed"+email, "Failed to send code."))
 		return
 	}
 
@@ -185,7 +185,34 @@ func checkEmail(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"code": 1,
-		"msg":  "验证码发送成功，5分钟内无法重复发送验证码。请记得查看垃圾邮件。",
+		"msg":  "Code sent successfully. Please check spams and wait 1 minute to resend.",
+	})
+}
+
+func checkEmailInvitation(c *gin.Context) {
+	email := strings.ToLower(c.PostForm("email"))
+
+	emailHash := c.MustGet("email_hash").(string)
+
+	code := viper.GetString("invitation_code")
+
+	err := mail.SendValidationEmail(code, email)
+	if err != nil {
+		base.HttpReturnWithCodeMinusOne(c, logger.NewError(err, "SendEmailFailed"+email, "Failed to send code."))
+		return
+	}
+
+	err = base.GetDb(false).Clauses(clause.OnConflict{
+		UpdateAll: true,
+	}).Create(&base.VerificationCode{Code: code, EmailHash: emailHash, FailedTimes: 0, UpdatedAt: time.Now()}).Error
+	if err != nil {
+		base.HttpReturnWithCodeMinusOne(c, logger.NewError(err, "SaveVerificationCodeFailed", consts.DatabaseWriteFailedString))
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code": 2,
+		"msg":  "Code sent successfully. Please check spams and wait 1 minute to resend.",
 	})
 }
 

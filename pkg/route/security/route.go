@@ -37,6 +37,12 @@ func ApiListenHttp() {
 		checkEmailRateLimitVerificationCode,
 		checkEmailReCaptchaValidationMiddleware,
 		checkEmail)
+	r.POST("/v3/security/login/check_email_invitation",
+		checkEmailParamsCheckMiddleware,
+		checkEmailRegexMiddleware,
+		checkEmailRateLimitVerificationCode,
+		checkEmailReCaptchaValidationMiddleware,
+		checkEmailInvitation)
 	r.POST("/v3/security/login/check_email_unregister",
 		checkEmailParamsCheckMiddleware,
 		checkAccountIsRegistered,
@@ -48,6 +54,11 @@ func ApiListenHttp() {
 		checkAccountNotRegistered,
 		loginCheckIOSToken,
 		createAccount)
+	r.POST("/v3/security/login/create_account_invitation",
+		loginParamsCheckMiddleware,
+		checkAccountNotRegistered,
+		loginCheckIOSToken,
+		createAccountInvitation)
 	r.POST("/v3/security/login/login",
 		loginParamsCheckMiddleware,
 		checkAccountIsRegistered,

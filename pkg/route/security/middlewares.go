@@ -60,7 +60,7 @@ func checkAccountNotRegistered(c *gin.Context) {
 		return
 	}
 	if count == 1 {
-		base.HttpReturnWithCodeMinusOneAndAbort(c, logger.NewSimpleError("AlreadyRegisteredError", "你已经注册过了！", logger.WARN))
+		base.HttpReturnWithCodeMinusOneAndAbort(c, logger.NewSimpleError("AlreadyRegisteredError", "This username is used.", logger.WARN))
 		return
 	}
 
